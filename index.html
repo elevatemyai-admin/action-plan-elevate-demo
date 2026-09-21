@@ -203,6 +203,17 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .tag-picker{display:flex;flex-wrap:wrap;gap:0.4rem;margin:0.1rem 0 0.2rem;}
 .tag-chip-new{border-style:dashed;color:var(--sand);}
 
+/* COLLAPSIBLE TAG UI — the Add a Task tag picker and the Filter by
+   tag/assignee bars all default closed and open on click, so a client
+   with 40+ tags in use doesn't open to a wall of chips before ever
+   reaching a task. */
+.tag-picker-toggle, .filter-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:0.15rem 0;}
+.tag-picker-toggle{font-size:12.5px;font-weight:600;color:var(--navy);margin:0.1rem 0 0.2rem;}
+.filter-toggle{margin:1rem 0 0.5rem;}
+.tag-picker-chevron{font-size:10px;color:var(--sand);transition:transform 0.2s;}
+.tag-picker-toggle.open .tag-picker-chevron, .filter-toggle.open .tag-picker-chevron{transform:rotate(180deg);}
+.filter-summary{font-size:11px;color:var(--teal);font-weight:600;margin-left:0.4rem;}
+
 /* FUTURE IDEAS — visually distinct from active steps: no checkbox, no
    progress tracking, just something to open and read when curious. */
 .future-heading{margin:2.5rem 0 0.5rem;}
@@ -473,7 +484,11 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
           <option value="Future">Future</option>
           <option value="Idea">Someday / bigger idea</option>
         </select>
-        <div class="tag-picker" id="newTaskTagPicker"></div>
+        <div class="tag-picker-toggle" id="newTaskTagToggle" onclick="toggleTagPicker()">
+          <span id="newTaskTagToggleLabel">+ Choose tags (optional)</span>
+          <span class="tag-picker-chevron" id="newTaskTagChevron">▾</span>
+        </div>
+        <div class="tag-picker" id="newTaskTagPicker" style="display:none;"></div>
         <div class="add-task-row2">
           <button id="newTaskAdd" onclick="addNewTask()" style="width:100%;">Add</button>
         </div>
@@ -501,11 +516,17 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
     </div>
   </div>
 
-  <div class="section-label tight">Filter by tag</div>
-  <div class="tag-filter-bar" id="tagFilterBar"></div>
+  <div class="filter-toggle" id="tagFilterToggle" onclick="toggleTagFilterOpen()">
+    <span class="section-label tight" id="tagFilterLabel" style="margin:0;">Filter by tag</span>
+    <span class="tag-picker-chevron" id="tagFilterChevron">▾</span>
+  </div>
+  <div class="tag-filter-bar" id="tagFilterBar" style="display:none;"></div>
 
-  <div class="section-label tight">Filter by assignee</div>
-  <div class="tag-filter-bar" id="assigneeFilterBar"></div>
+  <div class="filter-toggle" id="assigneeFilterToggle" onclick="toggleAssigneeFilterOpen()">
+    <span class="section-label tight" id="assigneeFilterLabel" style="margin:0;">Filter by assignee</span>
+    <span class="tag-picker-chevron" id="assigneeFilterChevron">▾</span>
+  </div>
+  <div class="tag-filter-bar" id="assigneeFilterBar" style="display:none;"></div>
 
   <div class="when-section" data-when="Today">
     <div class="when-section-header" onclick="toggleWhenSection('Today')">
@@ -809,7 +830,12 @@ let notesSaveTimeouts = {};
 function whenCollapseKey(when){ return 'elevate-when-collapsed-' + CLIENT.slug + '-' + when; }
 function loadWhenCollapseState(){
   WHEN_OPTIONS.forEach(when => {
-    try{ whenSectionCollapsed[when] = localStorage.getItem(whenCollapseKey(when)) === '1'; }catch(e){ whenSectionCollapsed[when] = false; }
+    try{
+      const saved = localStorage.getItem(whenCollapseKey(when));
+      // First-ever visit (nothing saved yet) starts collapsed -- opening to
+      // a wall of every task is exactly the problem this was built to fix.
+      whenSectionCollapsed[when] = saved === null ? true : saved === '1';
+    }catch(e){ whenSectionCollapsed[when] = true; }
   });
 }
 function toggleWhenSection(when){
@@ -907,6 +933,30 @@ async function loadTasksFromAirtable(){
 
 function findTask(id){ return TASKS.find(t => t._id === id); }
 
+let tagPickerOpen = false;
+let tagFilterOpen = false;
+let assigneeFilterOpen = false;
+function loadTagUiCollapseState(){
+  try{ tagPickerOpen = localStorage.getItem('elevate-tagpicker-open-' + CLIENT.slug) === '1'; }catch(e){ tagPickerOpen = false; }
+  try{ tagFilterOpen = localStorage.getItem('elevate-tagfilter-open-' + CLIENT.slug) === '1'; }catch(e){ tagFilterOpen = false; }
+  try{ assigneeFilterOpen = localStorage.getItem('elevate-assigneefilter-open-' + CLIENT.slug) === '1'; }catch(e){ assigneeFilterOpen = false; }
+}
+function toggleTagPicker(){
+  tagPickerOpen = !tagPickerOpen;
+  try{ localStorage.setItem('elevate-tagpicker-open-' + CLIENT.slug, tagPickerOpen ? '1' : '0'); }catch(e){}
+  renderNewTaskTagPicker();
+}
+function toggleTagFilterOpen(){
+  tagFilterOpen = !tagFilterOpen;
+  try{ localStorage.setItem('elevate-tagfilter-open-' + CLIENT.slug, tagFilterOpen ? '1' : '0'); }catch(e){}
+  renderTagFilterBar();
+}
+function toggleAssigneeFilterOpen(){
+  assigneeFilterOpen = !assigneeFilterOpen;
+  try{ localStorage.setItem('elevate-assigneefilter-open-' + CLIENT.slug, assigneeFilterOpen ? '1' : '0'); }catch(e){}
+  renderAssigneeFilterBar();
+}
+
 function allTags(){
   const set = new Set();
   TASKS.forEach(t => t.tags.forEach(tag => { if(tag) set.add(tag); }));
@@ -951,10 +1001,19 @@ function addNewTagPrompt(){
 }
 function renderNewTaskTagPicker(){
   const el = document.getElementById('newTaskTagPicker');
+  const toggle = document.getElementById('newTaskTagToggle');
+  const label = document.getElementById('newTaskTagToggleLabel');
   if(!el) return;
   const tags = knownTags();
   el.innerHTML = tags.map(tag => `<button type="button" class="tag-chip ${selectedNewTaskTags.includes(tag) ? 'active' : ''}" onclick="toggleNewTaskTag(${JSON.stringify(tag)})">${escapeHtml(tag)}</button>`).join('') +
     `<button type="button" class="tag-chip tag-chip-new" onclick="addNewTagPrompt()">+ New tag</button>`;
+  el.style.display = tagPickerOpen ? 'flex' : 'none';
+  if(toggle) toggle.classList.toggle('open', tagPickerOpen);
+  if(label){
+    label.textContent = selectedNewTaskTags.length
+      ? (tagPickerOpen ? 'Choose tags' : selectedNewTaskTags.join(', '))
+      : '+ Choose tags (optional)';
+  }
 }
 
 function toggleTagFilter(tag){
@@ -966,16 +1025,19 @@ function clearTagFilters(){ activeTagFilters = []; render(); }
 
 function renderTagFilterBar(){
   const bar = document.getElementById('tagFilterBar');
+  const toggle = document.getElementById('tagFilterToggle');
+  const labelEl = document.getElementById('tagFilterLabel');
   if(!bar) return;
   const tags = allTags();
-  const label = bar.previousElementSibling;
   if(!tags.length){
-    if(label) label.style.display = 'none';
+    if(toggle) toggle.style.display = 'none';
     bar.style.display = 'none';
     return;
   }
-  if(label) label.style.display = 'block';
-  bar.style.display = 'flex';
+  if(toggle) toggle.style.display = 'flex';
+  bar.style.display = tagFilterOpen ? 'flex' : 'none';
+  if(toggle) toggle.classList.toggle('open', tagFilterOpen);
+  if(labelEl) labelEl.textContent = 'Filter by tag' + (activeTagFilters.length ? ` (${activeTagFilters.length} active)` : '');
   bar.innerHTML = tags.map(tag => `<button class="tag-chip ${activeTagFilters.includes(tag) ? 'active' : ''}" onclick="toggleTagFilter(${JSON.stringify(tag)})">${escapeHtml(tag)}</button>`).join('') +
     (activeTagFilters.length ? `<button class="tag-chip tag-chip-clear" onclick="clearTagFilters()">Clear ✕</button>` : '');
 }
@@ -993,16 +1055,19 @@ function toggleAssigneeFilter(name){
 function clearAssigneeFilters(){ activeAssigneeFilters = []; render(); }
 function renderAssigneeFilterBar(){
   const bar = document.getElementById('assigneeFilterBar');
+  const toggle = document.getElementById('assigneeFilterToggle');
+  const labelEl = document.getElementById('assigneeFilterLabel');
   if(!bar) return;
   const names = allAssignees();
-  const label = bar.previousElementSibling;
   if(names.length <= 1){
-    if(label) label.style.display = 'none';
+    if(toggle) toggle.style.display = 'none';
     bar.style.display = 'none';
     return;
   }
-  if(label) label.style.display = 'block';
-  bar.style.display = 'flex';
+  if(toggle) toggle.style.display = 'flex';
+  bar.style.display = assigneeFilterOpen ? 'flex' : 'none';
+  if(toggle) toggle.classList.toggle('open', assigneeFilterOpen);
+  if(labelEl) labelEl.textContent = 'Filter by assignee' + (activeAssigneeFilters.length ? ` (${activeAssigneeFilters.length} active)` : '');
   bar.innerHTML = names.map(name => `<button class="tag-chip ${activeAssigneeFilters.includes(name) ? 'active' : ''}" onclick="toggleAssigneeFilter(${JSON.stringify(name)})">${escapeHtml(name)}</button>`).join('') +
     (activeAssigneeFilters.length ? `<button class="tag-chip tag-chip-clear" onclick="clearAssigneeFilters()">Clear ✕</button>` : '');
 }
@@ -1679,6 +1744,7 @@ renderWaysHelp();
 // renderIdeasList() is called from render() once tasks load, not here directly.
 // applyWhenSectionCollapseState() runs after each render(); load saved state before the first render.
 loadWhenCollapseState();
+loadTagUiCollapseState();
 applySavedDashboardCollapseState();
 
 (async function initTasks(){
