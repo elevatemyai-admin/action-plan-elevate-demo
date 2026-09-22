@@ -1005,7 +1005,7 @@ function renderNewTaskTagPicker(){
   const label = document.getElementById('newTaskTagToggleLabel');
   if(!el) return;
   const tags = knownTags();
-  el.innerHTML = tags.map(tag => `<button type="button" class="tag-chip ${selectedNewTaskTags.includes(tag) ? 'active' : ''}" onclick="toggleNewTaskTag(${JSON.stringify(tag)})">${escapeHtml(tag)}</button>`).join('') +
+  el.innerHTML = tags.map(tag => `<button type="button" class="tag-chip ${selectedNewTaskTags.includes(tag) ? 'active' : ''}" onclick="toggleNewTaskTag(${jsAttr(tag)})">${escapeHtml(tag)}</button>`).join('') +
     `<button type="button" class="tag-chip tag-chip-new" onclick="addNewTagPrompt()">+ New tag</button>`;
   el.style.display = tagPickerOpen ? 'flex' : 'none';
   if(toggle) toggle.classList.toggle('open', tagPickerOpen);
@@ -1038,7 +1038,7 @@ function renderTagFilterBar(){
   bar.style.display = tagFilterOpen ? 'flex' : 'none';
   if(toggle) toggle.classList.toggle('open', tagFilterOpen);
   if(labelEl) labelEl.textContent = 'Filter by tag' + (activeTagFilters.length ? ` (${activeTagFilters.length} active)` : '');
-  bar.innerHTML = tags.map(tag => `<button class="tag-chip ${activeTagFilters.includes(tag) ? 'active' : ''}" onclick="toggleTagFilter(${JSON.stringify(tag)})">${escapeHtml(tag)}</button>`).join('') +
+  bar.innerHTML = tags.map(tag => `<button class="tag-chip ${activeTagFilters.includes(tag) ? 'active' : ''}" onclick="toggleTagFilter(${jsAttr(tag)})">${escapeHtml(tag)}</button>`).join('') +
     (activeTagFilters.length ? `<button class="tag-chip tag-chip-clear" onclick="clearTagFilters()">Clear ✕</button>` : '');
 }
 
@@ -1068,7 +1068,7 @@ function renderAssigneeFilterBar(){
   bar.style.display = assigneeFilterOpen ? 'flex' : 'none';
   if(toggle) toggle.classList.toggle('open', assigneeFilterOpen);
   if(labelEl) labelEl.textContent = 'Filter by assignee' + (activeAssigneeFilters.length ? ` (${activeAssigneeFilters.length} active)` : '');
-  bar.innerHTML = names.map(name => `<button class="tag-chip ${activeAssigneeFilters.includes(name) ? 'active' : ''}" onclick="toggleAssigneeFilter(${JSON.stringify(name)})">${escapeHtml(name)}</button>`).join('') +
+  bar.innerHTML = names.map(name => `<button class="tag-chip ${activeAssigneeFilters.includes(name) ? 'active' : ''}" onclick="toggleAssigneeFilter(${jsAttr(name)})">${escapeHtml(name)}</button>`).join('') +
     (activeAssigneeFilters.length ? `<button class="tag-chip tag-chip-clear" onclick="clearAssigneeFilters()">Clear ✕</button>` : '');
 }
 
@@ -1081,6 +1081,15 @@ function visibleTasks(){
 
 function escapeHtml(str){
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Every onclick="..." attribute is double-quoted, and JSON.stringify()
+// wraps strings in double quotes too -- embedding one directly inside the
+// other cuts the attribute off early the moment a chip's own quote is hit,
+// breaking the click handler. This escapes those quotes to &quot; so the
+// browser hands the JS engine back the real value, unbroken.
+function jsAttr(value){
+  return JSON.stringify(value).replace(/"/g, '&quot;');
 }
 
 function assigneeSelectHtml(currentValue, onChangeCall){
