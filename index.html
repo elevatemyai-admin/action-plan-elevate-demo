@@ -484,6 +484,11 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
           <option value="Future">Future</option>
           <option value="Idea">Someday / bigger idea</option>
         </select>
+        <select id="newTaskAiOrHuman">
+          <option value="" selected>Who does this? (optional)</option>
+          <option value="human">Human-led</option>
+          <option value="ai">AI-assisted</option>
+        </select>
         <div class="tag-picker-toggle" id="newTaskTagToggle" onclick="toggleTagPicker()">
           <span id="newTaskTagToggleLabel">+ Choose tags (optional)</span>
           <span class="tag-picker-chevron" id="newTaskTagChevron">▾</span>
@@ -1186,6 +1191,7 @@ async function addSubtask(parentId){
 async function addNewTask(){
   const textInput = document.getElementById('newTaskText');
   const whenSelect = document.getElementById('newTaskWhen');
+  const aiOrHumanSelect = document.getElementById('newTaskAiOrHuman');
   const text = textInput.value.trim();
   if(!text) return;
   const addBtn = document.getElementById('newTaskAdd');
@@ -1193,7 +1199,7 @@ async function addNewTask(){
   try{
     const topLevelSiblings = ALL_TASKS.filter(t => !t.parentId);
     const maxOrder = topLevelSiblings.reduce((max, t) => Math.max(max, t.order || 0), 0);
-    const body = { task: text, when: whenSelect.value, tags: selectedNewTaskTags.slice(), order: maxOrder + 10, done: false };
+    const body = { task: text, when: whenSelect.value, tags: selectedNewTaskTags.slice(), aiOrHuman: aiOrHumanSelect.value, order: maxOrder + 10, done: false };
     const res = await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1204,6 +1210,7 @@ async function addNewTask(){
       throw new Error(errBody.error || ('Save failed (HTTP ' + res.status + ')'));
     }
     textInput.value = '';
+    aiOrHumanSelect.value = '';
     selectedNewTaskTags = [];
     await loadTasksFromAirtable();
     render();
