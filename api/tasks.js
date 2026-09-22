@@ -143,7 +143,7 @@ module.exports = async function handler(req, res) {
       const airRes = await fetch(AIRTABLE_URL, {
         method: 'POST',
         headers: HEADERS,
-        body: JSON.stringify({ fields })
+        body: JSON.stringify({ fields, typecast: true })
       });
       if (!airRes.ok) {
         const detail = await airRes.json().catch(() => ({}));
@@ -160,7 +160,7 @@ module.exports = async function handler(req, res) {
       const airRes = await fetch(`${AIRTABLE_URL}/${id}`, {
         method: 'PATCH',
         headers: HEADERS,
-        body: JSON.stringify({ fields })
+        body: JSON.stringify({ fields, typecast: true })
       });
       if (!airRes.ok) {
         const detail = await airRes.json().catch(() => ({}));
