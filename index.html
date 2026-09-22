@@ -1185,11 +1185,15 @@ async function addNewTask(){
     const topLevelSiblings = ALL_TASKS.filter(t => !t.parentId);
     const maxOrder = topLevelSiblings.reduce((max, t) => Math.max(max, t.order || 0), 0);
     const body = { task: text, when: whenSelect.value, tags: selectedNewTaskTags.slice(), order: maxOrder + 10, done: false };
-    await fetch('/api/tasks', {
+    const res = await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
+    if(!res.ok){
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error || ('Save failed (HTTP ' + res.status + ')'));
+    }
     textInput.value = '';
     selectedNewTaskTags = [];
     await loadTasksFromAirtable();
@@ -1197,7 +1201,7 @@ async function addNewTask(){
     renderDashboard();
     renderSummary();
   }catch(e){
-    alert('Could not add that task -- check your connection and try again.');
+    alert('Could not add that task -- ' + (e.message || 'check your connection and try again.'));
   }
   addBtn.disabled = false;
 }
