@@ -76,7 +76,16 @@ function flattenRecord(record) {
     if (pageName === 'parentId') {
       value = Array.isArray(value) && value.length ? value[0] : null;
     } else if (pageName === 'tags') {
-      value = Array.isArray(value) ? value : [];
+      if (Array.isArray(value)) {
+        value = value;
+      } else if (typeof value === 'string' && value.trim()) {
+        // Tags field came in as plain text (e.g. from a CSV import that
+        // didn't get converted to a real Multiple Select field) -- split
+        // on commas so the page still gets a usable list either way.
+        value = value.split(',').map(s => s.trim()).filter(Boolean);
+      } else {
+        value = [];
+      }
     }
     out[pageName] = value === undefined ? (pageName === 'tags' ? [] : null) : value;
   }
@@ -136,7 +145,10 @@ module.exports = async function handler(req, res) {
         headers: HEADERS,
         body: JSON.stringify({ fields })
       });
-      if (!airRes.ok) throw new Error(`Airtable POST failed: ${airRes.status}`);
+      if (!airRes.ok) {
+        const detail = await airRes.json().catch(() => ({}));
+        throw new Error(detail.error && detail.error.message ? detail.error.message : `Airtable POST failed: ${airRes.status}`);
+      }
       const created = await airRes.json();
       return res.status(200).json({ task: flattenRecord(created) });
     }
@@ -150,7 +162,10 @@ module.exports = async function handler(req, res) {
         headers: HEADERS,
         body: JSON.stringify({ fields })
       });
-      if (!airRes.ok) throw new Error(`Airtable PATCH failed: ${airRes.status}`);
+      if (!airRes.ok) {
+        const detail = await airRes.json().catch(() => ({}));
+        throw new Error(detail.error && detail.error.message ? detail.error.message : `Airtable PATCH failed: ${airRes.status}`);
+      }
       const updated = await airRes.json();
       return res.status(200).json({ task: flattenRecord(updated) });
     }
@@ -170,6 +185,6 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: `Method ${req.method} not allowed.` });
   } catch (err) {
     console.error('api/tasks error:', err);
-    return res.status(500).json({ error: 'Something went wrong talking to Airtable.' });
+    return res.status(500).json({ error: err.message || 'Something went wrong talking to Airtable.' });
   }
 };
