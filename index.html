@@ -49,6 +49,31 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 
 /* PROGRESS */
 
+.results-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-top:1.5rem;}
+.results-title{font-family:var(--d);font-size:1.15rem;font-weight:700;color:var(--navy);}
+.results-sub{font-size:13.5px;color:var(--text-muted);margin:0.2rem 0 1rem;}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0.75rem;}
+.result-item{border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.9rem 1rem;background:var(--cream);}
+.result-name{font-weight:600;font-size:14px;color:var(--navy);line-height:1.35;margin-bottom:0.6rem;}
+.result-now{font-family:var(--m);font-size:1.15rem;color:var(--teal);line-height:1.2;}
+.result-now.pending{font-family:var(--b);font-size:13px;color:var(--text-muted);font-style:italic;}
+.result-meta{font-size:12.5px;color:var(--text-muted);margin-top:0.45rem;line-height:1.5;}
+.result-meta b{color:var(--text-dark);font-weight:600;}
+.result-item{display:flex;flex-direction:column;}
+.result-actions{margin-top:auto;padding-top:0.6rem;}
+.kpi-btn{border:1.5px solid var(--border);background:var(--white);color:var(--navy);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--b);}
+.kpi-btn:hover{border-color:var(--teal);}
+.kpi-btn.primary{background:var(--teal);border-color:var(--teal);color:#fff;}
+.kpi-btn:disabled{opacity:.6;cursor:default;}
+.kpi-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+.kpi-form label{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--sand);margin:0.5rem 0 0.2rem;}
+.kpi-form input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;font-size:13.5px;font-family:var(--b);background:var(--white);color:var(--text-dark);}
+.kpi-form input:focus{outline:none;border-color:var(--teal);}
+.kpi-form .row{display:flex;gap:6px;margin-top:0.7rem;flex-wrap:wrap;}
+.kpi-err{font-size:12px;color:var(--red);margin-top:0.4rem;}
+.kpi-add{margin-top:0.9rem;}
+.kpi-add-form{border:1px dashed var(--border);border-radius:var(--radius-sm);padding:0.9rem 1rem;margin-top:0.9rem;background:var(--cream);max-width:420px;}
+.kpi-empty{font-size:13.5px;color:var(--text-muted);font-style:italic;}
 .section-label{font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--sand);margin:2.5rem 0 1rem;}
 .section-label.tight{margin-top:1.5rem;}
 
@@ -627,6 +652,13 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
   <div class="wins-card" id="winsCard" style="display:none;">
     <div class="wins-title">🌱 Wins so far</div>
     <div class="wins-grid" id="winsGrid"></div>
+  </div>
+
+  <div class="results-card" id="resultsCard" style="display:none;">
+    <div class="results-title">Results so far</div>
+    <div class="results-sub">Where your key numbers started, and where they are now. Updated at each monthly check-in.</div>
+    <div class="results-grid" id="resultsGrid"></div>
+    <div class="kpi-add" id="kpiAdd"></div>
   </div>
 
   <div class="powered-by"><a href="./sow.html" target="_blank">View your service agreement →</a> &nbsp;·&nbsp; Powered by <a href="https://www.cwmsd.com/ai-consult-elevatemy.ai" target="_blank">elevatemy.ai</a></div>
@@ -1773,6 +1805,134 @@ applySavedDashboardCollapseState();
   renderDashboard();
   renderSummary();
   renderWins();
+})();
+</script>
+<script>
+/* Results so far: reads and updates the KPIs table through /api/kpis.
+   Shows once the table can be reached (even if it's empty, so a first measure can be added). Stays hidden on errors. */
+(function(){
+  const API = '/api/kpis';
+  let kpis = [];
+  let editing = null;   // id of the measure being updated
+  let adding = false;
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmtDate = d => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || '');
+    if(!m) return d || '';
+    return new Date(+m[1], +m[2]-1, +m[3]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+  const today = () => {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  };
+  async function send(method, body){
+    const r = await fetch(API, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(typeof data.error === 'string' ? data.error : (data.error && data.error.message) || 'Save failed');
+    return data.kpi;
+  }
+
+  function itemHtml(k){
+    if(editing === k.id){
+      return `
+        <div class="result-item kpi-form" data-id="${esc(k.id)}">
+          <div class="result-name">${esc(k.measure)}</div>
+          <label for="cur-${esc(k.id)}">Current number</label>
+          <input id="cur-${esc(k.id)}" value="${esc(k.current)}" placeholder="e.g. 912"/>
+          <label for="tgt-${esc(k.id)}">Goal</label>
+          <input id="tgt-${esc(k.id)}" value="${esc(k.target)}" placeholder="optional"/>
+          <div class="row">
+            <button type="button" class="kpi-btn primary" data-act="save">Save</button>
+            <button type="button" class="kpi-btn" data-act="cancel">Cancel</button>
+          </div>
+          <div class="kpi-err" id="err-${esc(k.id)}"></div>
+        </div>`;
+    }
+    return `
+      <div class="result-item" data-id="${esc(k.id)}">
+        <div class="result-name">${esc(k.measure)}</div>
+        ${k.current
+          ? `<div class="result-now">${esc(k.current)}</div>`
+          : `<div class="result-now pending">Not updated yet</div>`}
+        <div class="result-meta">
+          ${k.current && k.updated ? `Updated ${esc(fmtDate(k.updated))}<br>` : ''}
+          ${k.start ? `<b>Started:</b> ${esc(k.start)}${k.date ? ` (${esc(fmtDate(k.date))})` : ''}<br>` : ''}
+          ${k.target ? `<b>Goal:</b> ${esc(k.target)}` : ''}
+        </div>
+        <div class="result-actions"><button type="button" class="kpi-btn" data-act="edit">Update</button></div>
+      </div>`;
+  }
+
+  function addHtml(){
+    if(!adding) return `<button type="button" class="kpi-btn" data-act="add-open">+ Add a measure</button>`;
+    return `
+      <div class="kpi-add-form kpi-form">
+        <div class="result-name">Add a measure</div>
+        <label for="newMeasure">What's being measured</label>
+        <input id="newMeasure" placeholder="e.g. Monthly recurring donors"/>
+        <label for="newStart">Starting number</label>
+        <input id="newStart" placeholder="e.g. 2 sign-ups"/>
+        <label for="newDate">Date of that starting number</label>
+        <input id="newDate" type="date" value="${today()}"/>
+        <div class="row">
+          <button type="button" class="kpi-btn primary" data-act="add-save">Add</button>
+          <button type="button" class="kpi-btn" data-act="add-cancel">Cancel</button>
+        </div>
+        <div class="kpi-err" id="err-new"></div>
+      </div>`;
+  }
+
+  function render(){
+    document.getElementById('resultsGrid').innerHTML = kpis.length
+      ? kpis.map(itemHtml).join('')
+      : `<div class="kpi-empty">No measures yet.</div>`;
+    document.getElementById('kpiAdd').innerHTML = addHtml();
+  }
+
+  document.getElementById('resultsCard').addEventListener('click', async e => {
+    const btn = e.target.closest('button[data-act]');
+    if(!btn) return;
+    const act = btn.dataset.act;
+    const item = btn.closest('[data-id]');
+    const id = item && item.dataset.id;
+
+    if(act === 'edit'){ editing = id; adding = false; render(); document.getElementById('cur-' + id).focus(); }
+    if(act === 'cancel'){ editing = null; render(); }
+    if(act === 'save'){
+      btn.disabled = true; btn.textContent = 'Saving…';
+      try{
+        const kpi = await send('PATCH', { id, current: document.getElementById('cur-' + id).value, target: document.getElementById('tgt-' + id).value, updated: today() });
+        kpis = kpis.map(k => k.id === id ? kpi : k);
+        editing = null; render();
+      }catch(err){
+        btn.disabled = false; btn.textContent = 'Save';
+        document.getElementById('err-' + id).textContent = "Didn't save: " + err.message;
+      }
+    }
+    if(act === 'add-open'){ adding = true; editing = null; render(); document.getElementById('newMeasure').focus(); }
+    if(act === 'add-cancel'){ adding = false; render(); }
+    if(act === 'add-save'){
+      const measure = document.getElementById('newMeasure').value.trim();
+      if(!measure){ document.getElementById('err-new').textContent = 'Give the measure a name first.'; return; }
+      btn.disabled = true; btn.textContent = 'Adding…';
+      try{
+        const kpi = await send('POST', { measure, start: document.getElementById('newStart').value, date: document.getElementById('newDate').value });
+        kpis.push(kpi); adding = false; render();
+      }catch(err){
+        btn.disabled = false; btn.textContent = 'Add';
+        document.getElementById('err-new').textContent = "Didn't save: " + err.message;
+      }
+    }
+  });
+
+  fetch(API)
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(data => {
+      kpis = (data && data.kpis) || [];
+      render();
+      document.getElementById('resultsCard').style.display = '';
+    })
+    .catch(err => console.warn('Results so far did not load:', err));
 })();
 </script>
 </body>
