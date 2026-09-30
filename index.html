@@ -261,6 +261,11 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .idea-promote-row select:focus{outline:2px solid var(--teal);outline-offset:1px;}
 .idea-promote-row button{padding:0.55rem 0.9rem;background:var(--teal);color:#fff;border:none;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;}
 .idea-promote-row button:hover{filter:brightness(1.08);}
+/* MOVE A TASK — change a task's When (or send it back to Bigger ideas)
+   from the page itself, no Airtable access needed. */
+.when-move-row{display:flex;align-items:center;gap:0.6rem;}
+.when-move-row select{padding:0.5rem 0.7rem;border:1px solid var(--border);border-radius:7px;font-family:var(--b);font-size:12.5px;color:var(--text-dark);background:var(--white);}
+.when-move-row select:focus{outline:2px solid var(--teal);outline-offset:1px;}
 
 /* WINS SO FAR — only shows stats that actually have real numbers behind
    them. Never fabricate a number to fill this out. */
@@ -1286,6 +1291,15 @@ function taskCardHtml(t){
           </div>
         </div>
         <div class="detail-block">
+          <div class="detail-label">When</div>
+          <div class="when-move-row" onclick="event.stopPropagation();">
+            <select onchange="moveTask('${t._id}', this.value)">
+              ${WHEN_OPTIONS.map(w => `<option value="${w}" ${t.when === w ? 'selected' : ''}>${w}</option>`).join('')}
+              <option value="${IDEA_WHEN}">Bigger idea (not yet)</option>
+            </select>
+          </div>
+        </div>
+        <div class="detail-block">
           <div class="detail-label">Notes — status, blockers, anything to flag</div>
           <textarea class="notes-input" placeholder="e.g. Waiting on their reply..." onclick="event.stopPropagation();" oninput="updateTaskNote('${t._id}', this.value)">${escapeHtml(t.notes)}</textarea>
         </div>
@@ -1550,6 +1564,17 @@ function ideaCardHtml(t){
         </div>
       </div>
     </div>`;
+}
+
+async function moveTask(id, when){
+  const t = findTask(id);
+  if(!t || !when || t.when === when) return;
+  t.when = when;
+  await patchTask(id, { when });
+  await loadTasksFromAirtable();
+  render();
+  renderDashboard();
+  renderSummary();
 }
 
 async function promoteIdea(id){
