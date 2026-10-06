@@ -1,129 +1,90 @@
-// api/thoughts.js
+// =============================================================================
+// api/thoughts.js: backend for the "Drop a thought" shared quick-capture
+// list on the action-plan page. Uses the same Upstash Redis REST API
+// pattern across every client, so thoughts sync live across every
+// device/browser that loads this page. Nothing is emailed or downloaded,
+// it's just always there the moment someone adds it.
 //
-// Backend for the "Drop a thought" quick-capture list on the action plan page.
-// Thoughts live in a "Thoughts" table inside the client's own Airtable base,
-// so they sync across every device that loads the page.
-//
-// Uses the same environment variables as api/tasks.js -- no new ones:
-//   AIRTABLE_TOKEN    - that client's scoped Personal Access Token
-//   AIRTABLE_BASE_ID  - that client's base
-// The table is found by its name, "Thoughts", inside that same base.
-//
-// Airtable columns (exact names, all plain text):
-//   Text | Author | Assignee | Created | Approved
-//
-//   GET    /api/thoughts                        -> { thoughts }
-//   POST   /api/thoughts { text, author }       -> { thoughts }
-//   PATCH  /api/thoughts { id, approved?, assignee? } -> { thoughts }
-//   DELETE /api/thoughts { id }                 -> { thoughts }
-// Every response returns the full list, newest first.
+// SETUP NEEDED PER NEW CLIENT:
+// 1. This Vercel project needs KV_REST_API_URL and KV_REST_API_TOKEN
+//    environment variables. Reuse the same Upstash Redis database as
+//    other client projects (recommended, no need for a new database
+//    per client); copy those two values over from any existing project's
+//    Environment Variables.
+// 2. EDIT the REDIS_KEY below to match this client's CLIENT.slug from
+//    index.html, so each client's thoughts stay in their own namespace
+//    inside the shared database.
+// =============================================================================
 
-const TABLE_NAME = 'Thoughts';
+const REDIS_URL = process.env.KV_REST_API_URL;
+const REDIS_TOKEN = process.env.KV_REST_API_TOKEN;
+const REDIS_KEY = 'thoughts:REPLACE-WITH-CLIENT-SLUG'; // EDIT: match CLIENT.slug
 
-// Tolerates invisible characters or stray spaces in column names (a CSV import can add them).
-function clean(fields) {
-  const out = {};
-  Object.keys(fields || {}).forEach(k => { out[k.replace(/\uFEFF/g, '').trim()] = fields[k]; });
-  return out;
-}
-function isYes(v) {
-  if (v === true) return true;
-  return /^(yes|true|1|checked)$/i.test(String(v == null ? '' : v).trim());
-}
-function toThought(rec) {
-  const f = clean(rec.fields);
-  const str = v => (v == null ? '' : String(v));
-  return {
-    id: rec.id,
-    text: str(f['Text']),
-    author: str(f['Author']) || 'Client',
-    assignee: str(f['Assignee']),
-    createdAt: str(f['Created']) || rec.createdTime,
-    approved: isYes(f['Approved'])
-  };
+async function getThoughts(){
+  const r = await fetch(`${REDIS_URL}/get/${REDIS_KEY}`, {
+    headers: { Authorization: `Bearer ${REDIS_TOKEN}` }
+  });
+  const data = await r.json();
+  return data.result ? JSON.parse(data.result) : [];
 }
 
-module.exports = async function handler(req, res) {
-  const token = process.env.AIRTABLE_TOKEN;
-  const base = process.env.AIRTABLE_BASE_ID;
-  if (!token || !base) {
-    return res.status(500).json({ error: 'Missing AIRTABLE_TOKEN or AIRTABLE_BASE_ID in Vercel environment variables.' });
-  }
-  const url = `https://api.airtable.com/v0/${base}/${encodeURIComponent(TABLE_NAME)}`;
-  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+async function saveThoughts(thoughts){
+  await fetch(`${REDIS_URL}/set/${REDIS_KEY}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${REDIS_TOKEN}` },
+    body: JSON.stringify(thoughts)
+  });
+}
 
-  async function listAll() {
-    let records = [];
-    let offset;
-    do {
-      const r = await fetch(url + (offset ? `?offset=${encodeURIComponent(offset)}` : ''), { headers });
-      const data = await r.json();
-      if (!r.ok) throw new Error(JSON.stringify(data.error || data));
-      records = records.concat(data.records || []);
-      offset = data.offset;
-    } while (offset);
-    return records
-      .map(toThought)
-      .filter(t => t.text)
-      .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
-  }
-
-  async function write(method, payload) {
-    const r = await fetch(url, { method, headers, body: JSON.stringify(payload) });
-    const data = await r.json();
-    if (!r.ok) throw new Error(JSON.stringify(data.error || data));
-    return data;
+export default async function handler(req, res) {
+  if (!REDIS_URL || !REDIS_TOKEN) {
+    return res.status(500).json({ error: 'Server is missing KV_REST_API_URL / KV_REST_API_TOKEN.' });
   }
 
   try {
-    const body = req.body || {};
-
     if (req.method === 'GET') {
-      return res.status(200).json({ thoughts: await listAll() });
+      const thoughts = await getThoughts();
+      return res.status(200).json({ thoughts });
     }
 
     if (req.method === 'POST') {
-      const text = (body.text || '').trim();
-      if (!text) return res.status(400).json({ error: 'No text provided' });
-      const author = body.author || 'Client';
-      await write('POST', {
-        records: [{ fields: {
-          'Text': text,
-          'Author': author,
-          'Assignee': author,
-          'Created': new Date().toISOString(),
-          'Approved': ''
-        } }],
-        typecast: true
+      const { text, author } = req.body || {};
+      if (!text || !text.trim()) return res.status(400).json({ error: 'No text provided' });
+      const thoughts = await getThoughts();
+      thoughts.unshift({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        text: text.trim(),
+        author: author || 'Client',
+        assignee: author || 'Client',
+        createdAt: new Date().toISOString(),
+        approved: false
       });
-      return res.status(200).json({ thoughts: await listAll() });
+      await saveThoughts(thoughts);
+      return res.status(200).json({ thoughts });
     }
 
     if (req.method === 'PATCH') {
-      if (!body.id) return res.status(400).json({ error: 'Missing thought id.' });
-      const fields = {};
-      if (typeof body.approved === 'boolean') fields['Approved'] = body.approved ? 'Yes' : '';
-      if (typeof body.assignee === 'string') fields['Assignee'] = body.assignee;
-      if (Object.keys(fields).length) {
-        await write('PATCH', { records: [{ id: body.id, fields }], typecast: true });
+      const { id, approved, assignee } = req.body || {};
+      const thoughts = await getThoughts();
+      const idx = thoughts.findIndex((t) => t.id === id);
+      if (idx >= 0) {
+        if (typeof approved === 'boolean') thoughts[idx].approved = approved;
+        if (typeof assignee === 'string') thoughts[idx].assignee = assignee;
       }
-      return res.status(200).json({ thoughts: await listAll() });
+      await saveThoughts(thoughts);
+      return res.status(200).json({ thoughts });
     }
 
     if (req.method === 'DELETE') {
-      if (!body.id) return res.status(400).json({ error: 'Missing thought id.' });
-      const r = await fetch(`${url}/${encodeURIComponent(body.id)}`, { method: 'DELETE', headers });
-      if (!r.ok) {
-        const data = await r.json().catch(() => ({}));
-        throw new Error(JSON.stringify(data.error || data));
-      }
-      return res.status(200).json({ thoughts: await listAll() });
+      const { id } = req.body || {};
+      let thoughts = await getThoughts();
+      thoughts = thoughts.filter((t) => t.id !== id);
+      await saveThoughts(thoughts);
+      return res.status(200).json({ thoughts });
     }
 
-    res.setHeader('Allow', 'GET, POST, PATCH, DELETE');
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {
-    console.error('api/thoughts error:', err);
-    return res.status(500).json({ error: 'Could not reach Airtable. Please try again.' });
+    return res.status(500).json({ error: 'Could not reach storage. Please try again.' });
   }
-};
+}

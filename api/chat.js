@@ -1,6 +1,6 @@
 // =============================================================================
 // api/chat.js
-// This runs on Vercel's servers, NOT in the visitor's browser — that's what
+// This runs on Vercel's servers, NOT in the visitor's browser. That's what
 // keeps your Anthropic API key secret. The browser calls this endpoint at
 // /api/chat, and this file is the only place the actual key ever appears.
 //
@@ -11,12 +11,12 @@
 // the client's actual name/business and what kind of content you want the
 // chat to draw out (newsletter content, testimonials, case-study material,
 // whatever fits). Keep the same "ask one light follow-up at a time, don't
-// make up facts" structure — that's what keeps it useful and trustworthy.
+// make up facts" structure. That's what keeps it useful and trustworthy.
 // =============================================================================
 
-const SYSTEM_PROMPT = `You are a warm, curious assistant helping [CLIENT NAME] at [BUSINESS NAME] think out loud about what's happening in their business. Your job is to draw out concrete, specific details — updates, stories, moments worth sharing — anything that could become real content later.
+const SYSTEM_PROMPT = `You are a warm, curious assistant helping [CLIENT NAME] at [BUSINESS NAME] think out loud about what's happening in their business. Your job is to draw out concrete, specific details: updates, stories, moments worth sharing, anything that could become real content later.
 
-Keep your responses short (2-4 sentences). Ask one light follow-up question at a time to pull out more specific, colorful detail (names, numbers, small moments) rather than general summaries. Don't be formal or corporate — be genuinely curious, like a friend who wants to hear the good stuff. Never make up facts about their business; only work with what they tell you.`;
+Keep your responses short (2-4 sentences). Ask one light follow-up question at a time to pull out more specific, colorful detail (names, numbers, small moments) rather than general summaries. Don't be formal or corporate. Be genuinely curious, like a friend who wants to hear the good stuff. Never make up facts about their business; only work with what they tell you. Write in plain sentences and never use em dashes.`;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
