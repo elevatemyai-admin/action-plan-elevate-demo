@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="color-scheme" content="light"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Your AI Action Plan — elevatemy.ai</title>
+<title>Your AI Action Plan | elevatemy.ai</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,600;12..96,700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet"/>
@@ -97,7 +97,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .tag-human{background:#FAEEDA;color:#854F0B;}
 .step-desc{font-size:13px;font-weight:400;color:var(--text-muted);line-height:1.6;}
 
-/* TASK TAGS — the filterable, freeform labels that replace the old
+/* TASK TAGS: the filterable, freeform labels that replace the old
    5-way nesting (This Week/30/60/90 Days/Someday, or Project > Group).
    A task can carry zero or more; they're purely a filter, never a
    place a task has to "live." */
@@ -134,7 +134,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .resource-link{display:inline-block;font-size:13px;color:var(--teal);text-decoration:none;font-weight:600;margin-right:1rem;}
 .resource-link:hover{text-decoration:underline;}
 
-/* ADD A STEP — a task's OWN checklist. Deliberately NOT the same
+/* ADD A STEP: a task's OWN checklist. Deliberately NOT the same
    mechanism as tags/nesting: this only ever attaches to the one task
    you're already looking at, never a dropdown of everything. */
 .add-substep-row{display:flex;gap:0.5rem;margin-top:0.3rem;}
@@ -153,14 +153,14 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .powered-by a{color:var(--sand);text-decoration:none;font-weight:600;}
 .powered-by a:hover{text-decoration:underline;}
 
-/* TOP CAPTURE ROW — Add a Task + Drop a Thought, side by side, above
+/* TOP CAPTURE ROW: Add a Task + Drop a Thought, side by side, above
    the fold. If someone just wants to fire off a task or a stray idea
    without scrolling, both are right here. Stacks on mobile. */
 .top-capture-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.1rem;align-items:start;}
 .top-capture-grid > .chat-card{min-width:0;}
 @media(max-width:720px){ .top-capture-grid{grid-template-columns:1fr;} }
 
-/* CHAT WIDGET — "Talk it through" / "Add a task" / "Drop a thought" all
+/* CHAT WIDGET: "Talk it through" / "Add a task" / "Drop a thought" all
    share this card shell. */
 .chat-card{margin-top:2.5rem;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;}
 .top-capture-grid .chat-card{margin-top:0;}
@@ -192,9 +192,9 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .chat-actions button:hover{background:var(--cream);}
 .privacy-note{margin-top:0.9rem;padding-top:0.9rem;border-top:1px solid var(--border);font-size:11px;color:var(--sand);line-height:1.6;}
 
-/* DROP A THOUGHT — shared, cross-device quick-capture list. Backed by
+/* DROP A THOUGHT: shared, cross-device quick-capture list. Backed by
    Upstash Redis via api/thoughts.js. For anything that doesn't have a
-   home yet — separate on purpose from the structured Tasks/Tags system
+   home yet, separate on purpose from the structured Tasks/Tags system
    below; this is the un-triaged inbox. */
 .thought-list{display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem;max-height:280px;overflow-y:auto;}
 .thought-item{display:flex;align-items:flex-start;gap:0.6rem;padding:0.6rem 0.7rem;border:1px solid var(--border);border-radius:8px;background:var(--cream);}
@@ -214,7 +214,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .thought-assignee{margin-top:0.4rem;font-size:11.5px;font-weight:600;color:var(--text-muted);padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:6px;background:var(--white);}
 .thought-queue-banner{display:none;}
 
-/* TAG FILTER BAR — click a tag to narrow every When-section to just
+/* TAG FILTER BAR: click a tag to narrow every When-section to just
    that tag; click again (or Clear) to reset. Purely a filter, never a
    required field. */
 .tag-filter-bar{display:flex;flex-wrap:wrap;gap:0.5rem;margin:1rem 0 0.5rem;}
@@ -223,12 +223,12 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .tag-chip.active{background:var(--teal);border-color:var(--teal);color:#fff;}
 .tag-chip-clear{color:var(--sand);border-style:dashed;}
 
-/* TAG PICKER — Add a Task's tag field. Click-to-select from a known
+/* TAG PICKER: Add a Task's tag field. Click-to-select from a known
    list instead of free-typing, so typos/near-duplicates never happen. */
 .tag-picker{display:flex;flex-wrap:wrap;gap:0.4rem;margin:0.1rem 0 0.2rem;}
 .tag-chip-new{border-style:dashed;color:var(--sand);}
 
-/* COLLAPSIBLE TAG UI — the Add a Task tag picker and the Filter by
+/* COLLAPSIBLE TAG UI: the Add a Task tag picker and the Filter by
    tag/assignee bars all default closed and open on click, so a client
    with 40+ tags in use doesn't open to a wall of chips before ever
    reaching a task. */
@@ -239,7 +239,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .tag-picker-toggle.open .tag-picker-chevron, .filter-toggle.open .tag-picker-chevron{transform:rotate(180deg);}
 .filter-summary{font-size:11px;color:var(--teal);font-weight:600;margin-left:0.4rem;}
 
-/* FUTURE IDEAS — visually distinct from active steps: no checkbox, no
+/* FUTURE IDEAS: visually distinct from active steps: no checkbox, no
    progress tracking, just something to open and read when curious. */
 .future-heading{margin:2.5rem 0 0.5rem;}
 .future-heading .section-label{margin:0 0 0.35rem;}
@@ -255,19 +255,19 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .idea-detail .detail-body{font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:0.7rem;}
 .idea-preview{list-style:none;display:flex;flex-direction:column;gap:0.35rem;}
 .idea-preview li{font-size:12.5px;color:var(--text-muted);padding-left:1rem;position:relative;line-height:1.5;}
-.idea-preview li::before{content:'—';position:absolute;left:0;color:var(--teal);}
+.idea-preview li::before{content:'-';position:absolute;left:0;color:var(--teal);}
 .idea-promote-row{display:flex;gap:0.6rem;margin-top:0.9rem;padding-top:0.9rem;border-top:1px dashed var(--border);}
 .idea-promote-row select{padding:0.55rem 0.7rem;border:1px solid var(--border);border-radius:7px;font-family:var(--b);font-size:12.5px;color:var(--text-dark);background:var(--white);}
 .idea-promote-row select:focus{outline:2px solid var(--teal);outline-offset:1px;}
 .idea-promote-row button{padding:0.55rem 0.9rem;background:var(--teal);color:#fff;border:none;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;}
 .idea-promote-row button:hover{filter:brightness(1.08);}
-/* MOVE A TASK — change a task's When (or send it back to Bigger ideas)
+/* MOVE A TASK: change a task's When (or send it back to Bigger ideas)
    from the page itself, no Airtable access needed. */
 .when-move-row{display:flex;align-items:center;gap:0.6rem;}
 .when-move-row select{padding:0.5rem 0.7rem;border:1px solid var(--border);border-radius:7px;font-family:var(--b);font-size:12.5px;color:var(--text-dark);background:var(--white);}
 .when-move-row select:focus{outline:2px solid var(--teal);outline-offset:1px;}
 
-/* WINS SO FAR — only shows stats that actually have real numbers behind
+/* WINS SO FAR: only shows stats that actually have real numbers behind
    them. Never fabricate a number to fill this out. */
 .wins-card{margin-top:1.4rem;background:linear-gradient(135deg, var(--teal-pale) 0%, var(--white) 100%);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem 1.6rem;}
 .wins-title{font-family:var(--d);font-size:1.05rem;font-weight:700;color:var(--navy);margin-bottom:1rem;}
@@ -276,7 +276,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .wins-num{font-family:var(--d);font-size:1.5rem;font-weight:700;color:var(--teal);line-height:1.1;margin-bottom:0.25rem;}
 .wins-label{font-size:11.5px;color:var(--text-muted);line-height:1.4;}
 
-/* HILL-CLIMB DASHBOARD — overall progress across every task, shown as a
+/* HILL-CLIMB DASHBOARD: overall progress across every task, shown as a
    climb with checkpoints. Chapters are now Today → This Week → Next
    Week → Future (matching the real data model 1:1, instead of the old
    Getting Started/Foundation/Launch/Elevate labels that didn't match
@@ -300,7 +300,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .summary-wins-list li{font-size:14.5px;font-weight:600;color:var(--navy);padding-left:1.2rem;position:relative;line-height:1.5;}
 .summary-wins-list li::before{content:'→';position:absolute;left:0;color:var(--amber);font-weight:700;}
 
-/* MINI-CARDS — Executive Summary / Recommended Solutions / Financial
+/* MINI-CARDS: Executive Summary / Recommended Solutions / Financial
    Impact. Collapsed by default (unlike Quick Summary) since these are
    reference detail, not the first thing someone needs to see. */
 .mini-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.6rem;margin-bottom:1rem;}
@@ -327,6 +327,20 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .financial-num{font-family:var(--d);font-size:1.3rem;font-weight:700;color:var(--teal);}
 .financial-label{font-size:10.5px;color:var(--text-muted);margin-top:0.2rem;}
 
+.deliv-list{display:flex;flex-direction:column;gap:0.75rem;}
+#delivCard.expanded .mini-card-body{max-height:3000px;}
+.deliv-card{border:1px solid var(--border);border-left:4px solid var(--teal);border-radius:var(--radius-sm);padding:0.9rem 1rem;}
+.deliv-top{display:flex;justify-content:space-between;align-items:flex-start;gap:0.75rem;}
+.deliv-name{font-size:13.5px;font-weight:700;color:var(--navy);}
+.deliv-status{font-size:10.5px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:999px;white-space:nowrap;background:var(--cream);color:var(--sand);}
+.deliv-status.s-progress{background:var(--teal-pale);color:var(--teal);}
+.deliv-status.s-review{background:#FBEFE3;color:var(--amber);}
+.deliv-status.s-done{background:#E3F1EC;color:var(--emerald);}
+.deliv-summary{font-size:12.5px;color:var(--text-muted);margin:0.35rem 0 0.5rem;line-height:1.5;}
+.deliv-items{margin:0;padding-left:1.1rem;font-size:12.5px;color:var(--text-dark);line-height:1.6;}
+.deliv-when{font-size:11.5px;color:var(--text-muted);margin-top:0.5rem;padding-top:0.5rem;border-top:1px dashed var(--border);}
+.deliv-note{font-size:11.5px;color:var(--text-muted);margin-top:0.75rem;line-height:1.5;}
+.deliv-note a{color:var(--teal);}
 .stack-list{display:flex;flex-direction:column;gap:0.75rem;}
 .stack-card{border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1rem;}
 .stack-category{font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:0.5rem;letter-spacing:0.01em;}
@@ -375,7 +389,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 
 .empty-section-note{font-size:12.5px;color:var(--text-muted);font-style:italic;padding:0.6rem 0.2rem 1.2rem;}
 
-/* COLLAPSIBLE WHEN-SECTIONS — Today/This Week/Next Week/Future can each
+/* COLLAPSIBLE WHEN-SECTIONS: Today/This Week/Next Week/Future can each
    be folded away to cut down on scrolling, without losing what's inside;
    state remembered per browser. */
 .when-section-header{display:flex;align-items:center;gap:0.6rem;cursor:pointer;user-select:none;margin:2.5rem 0 1rem;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--sand);}
@@ -412,9 +426,9 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
     </div>
     <div class="summary-body" id="summaryBody">
       <div class="summary-impact">
-        <div class="summary-impact-num" id="summaryImpactNum">—</div>
+        <div class="summary-impact-num" id="summaryImpactNum">-</div>
         <div class="summary-impact-label">hours your plan could save you</div>
-        <div class="summary-impact-caption">one-time total across every task with a real estimate — not a weekly or monthly rate</div>
+        <div class="summary-impact-caption">one-time total across every task with a real estimate, not a weekly or monthly rate</div>
       </div>
       <div class="summary-wins-box">
         <div class="summary-wins-label">🎯 Where to start</div>
@@ -441,6 +455,17 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
         <div class="mini-row-label">Primary Focus</div>
         <div class="mini-row-value" id="execFocusVal"></div>
       </div>
+    </div>
+  </div>
+
+  <div class="mini-card expanded" id="delivCard">
+    <div class="mini-card-top" onclick="toggleMiniCard('delivCard')">
+      <div class="mini-card-title">What We're Building For You</div>
+      <div class="mini-card-chevron">▲</div>
+    </div>
+    <div class="mini-card-body">
+      <div class="deliv-list" id="delivList"></div>
+      <div class="deliv-note" id="delivNote"></div>
     </div>
   </div>
 
@@ -499,7 +524,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
     </div>
   </div>
 
-  <!-- TOP CAPTURE ROW — Add a Task + Drop a Thought, side by side, above
+  <!-- TOP CAPTURE ROW: Add a Task + Drop a Thought, side by side, above
        the fold. Fix for the old layout, where these were far apart. -->
   <div class="top-capture-grid">
     <div class="chat-card" id="addTaskCard">
@@ -533,7 +558,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
     <div class="chat-card" id="dropThoughtCard">
       <div class="chat-title">Drop a thought</div>
       <div class="chat-sub">
-        For anything that doesn't have a home yet — type it or talk it out. Visible to the whole
+        For anything that doesn't have a home yet. Type it or talk it out. Visible to the whole
         team the moment you add it.
       </div>
       <div class="chat-input-row">
@@ -545,7 +570,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
       <div id="thoughtQueueBanner"></div>
       <div id="thoughtList" class="thought-list"></div>
       <div class="privacy-note">
-        Dropped thoughts are visible live to the whole team — unlike "Talk it through"
+        Dropped thoughts are visible live to the whole team, unlike "Talk it through"
         below, this one isn't private to your browser.
       </div>
     </div>
@@ -610,7 +635,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
   <div class="chat-card">
     <div class="chat-title">Talk it through</div>
     <div class="chat-sub">
-      Tell us what's going on — an update, a story, something coming up.
+      Tell us what's going on: an update, a story, something coming up.
       We'll help turn it into something usable.
     </div>
     <div id="chatLog" class="chat-log"></div>
@@ -625,26 +650,26 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
     </div>
     <div class="privacy-note">
       Anything typed or said here goes to Claude (an AI made by Anthropic) to help turn it into
-      usable content — nothing more. It's not used to train AI models, sold, or shared outside
+      usable content, nothing more. It's not used to train AI models, sold, or shared outside
       this project. What's typed is saved in this browser only; it doesn't sync to our team
-      automatically — use "Email this to your advisor" any time you want us to actually see it.
+      automatically. Use "Email this to your advisor" any time you want us to actually see it.
     </div>
   </div>
 
   <div class="future-heading">
-    <div class="section-label">Bigger ideas — for when you're ready</div>
+    <div class="section-label">Bigger ideas: for when you're ready</div>
     <div class="future-sub">
       Nothing below this line is happening yet, and nothing moves forward until you say so.
       Drop one here any time using the Add a Task box above (pick "Someday / bigger idea"
       as the When). Whenever you're ready to actually work on one, open it and pick a real
-      timeframe — it moves itself straight into your plan, no need to ask us.
+      timeframe and it moves itself straight into your plan. No need to ask us.
     </div>
   </div>
   <div id="ideasList"></div>
 
   <div class="ways-help-section">
     <div class="section-label">Ways we can keep helping</div>
-    <div class="future-sub">If any of this sounds useful down the road, just ask — no pressure, no pitch.</div>
+    <div class="future-sub">If any of this sounds useful down the road, just ask. No pressure, no pitch.</div>
     <div class="ways-grid" id="waysGrid"></div>
   </div>
 
@@ -666,7 +691,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
     <div class="kpi-add" id="kpiAdd"></div>
   </div>
 
-  <div class="powered-by"><a href="./sow.html" target="_blank">View your service agreement →</a> &nbsp;·&nbsp; Powered by <a href="https://www.cwmsd.com/ai-consult-elevatemy.ai" target="_blank">elevatemy.ai</a></div>
+  <div class="powered-by">Powered by <a href="https://www.cwmsd.com/ai-consult-elevatemy.ai" target="_blank">elevatemy.ai</a></div>
 </div>
 
 <script>
@@ -687,7 +712,7 @@ const ADVISOR_EMAIL = 'admin@elevatemy.ai';
 // Who tasks/thoughts can be assigned to on this client's plan.
 const ASSIGNEES = ['Unassigned', 'Tracy', 'Matt', CLIENT.clientName];
 
-// TAGS — the fixed, curated list clients pick from when adding a task.
+// TAGS: the fixed, curated list clients pick from when adding a task.
 // Set this during (or soon after) the discovery call, based on the real
 // projects/categories that came up. Deliberately NOT free-typed on the
 // page itself -- that's what stops "CRM" / "the crm" / "Crm intake" from
@@ -707,7 +732,7 @@ function assigneeColor(name){
   }
 }
 
-// EDIT THESE AS THINGS CHANGE — this powers the "Wins so far" section.
+// EDIT THESE AS THINGS CHANGE: this powers the "Wins so far" section.
 // Leave any value as null if you don't have a real number yet; that stat
 // just won't show up until you fill it in. Never show a fake number here.
 const STATS = {
@@ -718,7 +743,7 @@ const STATS = {
   openRateNow: null
 };
 
-// EXEC_SUMMARY — optional. Leave any field blank to hide that row; leave
+// EXEC_SUMMARY: optional. Leave any field blank to hide that row; leave
 // all three blank and the whole card hides itself.
 const EXEC_SUMMARY = {
   pain: "",
@@ -726,17 +751,22 @@ const EXEC_SUMMARY = {
   primaryFocus: ""
 };
 
-// TECH_STACK — an audit of what the client already uses, category by
+// DELIVERABLES: nothing to edit here. "What We're Building For You" reads
+// live from the Deliverables table in this client's Airtable base (see
+// api/deliverables.js). Edit it there; no re-upload needed. No table, or an
+// empty one, simply hides the section.
+
+// TECH_STACK: an audit of what the client already uses, category by
 // category. weSuggest and why are both optional. Leave the array empty
 // to hide the card.
 const TECH_STACK = [
   // { category: 'Website', youHave: '...', weSuggest: '', why: "..." },
 ];
 
-// TOOLS — the "Recommended Solutions" grid. Leave empty to hide the section.
+// TOOLS: the "Recommended Solutions" grid. Leave empty to hide the section.
 const TOOLS = [];
 
-// FINANCIAL_IMPACT — optional. Only fill in numbers you and the client
+// FINANCIAL_IMPACT: optional. Only fill in numbers you and the client
 // have actually agreed on. Never fabricate a dollar figure.
 const FINANCIAL_IMPACT = {
   weeklyHoursReturned: null,
@@ -744,7 +774,7 @@ const FINANCIAL_IMPACT = {
   monthlyNetValue: null
 };
 
-// WAYS_WE_HELP — a menu of deeper engagement options.
+// WAYS_WE_HELP: a menu of deeper engagement options.
 const WAYS_WE_HELP = [
   { icon: '🧩', color: 'var(--teal)', title: "Redesigning a process end-to-end", description: "When a whole workflow needs rethinking, not just one step.", priceRange: "$3,000-$5,000" },
   { icon: '⚙️', color: 'var(--amber)', title: "Building automations", description: "Connecting the tools you already use so less falls on you manually.", priceRange: "$1,000-$3,000" },
@@ -852,10 +882,10 @@ function renderWins(){
 }
 
 /* =========================================================================
-   TASK ENGINE — single flat TASKS array, keyed by real Airtable record
+   TASK ENGINE: single flat TASKS array, keyed by real Airtable record
    id. Organization is WHEN (Today/This Week/Next Week/Future) + TAGS
    (optional, filter-only, never a place a task has to "live"). A task's
-   own checklist ("sub-steps") is the ONE kept form of nesting — always
+   own checklist ("sub-steps") is the ONE kept form of nesting, always
    attached to the specific task you're looking at, never a dropdown of
    everything. Airtable is the only source of truth; nothing is cached
    in localStorage.
@@ -1300,7 +1330,7 @@ function taskCardHtml(t){
           </div>
         </div>
         <div class="detail-block">
-          <div class="detail-label">Notes — status, blockers, anything to flag</div>
+          <div class="detail-label">Notes: status, blockers, anything to flag</div>
           <textarea class="notes-input" placeholder="e.g. Waiting on their reply..." onclick="event.stopPropagation();" oninput="updateTaskNote('${t._id}', this.value)">${escapeHtml(t.notes)}</textarea>
         </div>
       </div>
@@ -1317,7 +1347,7 @@ function render(){
   const params = getParams();
   const displayName = params.name || CLIENT.clientName;
   document.getElementById('heroTitle').textContent = displayName ? `Here's your plan, ${displayName}.` : "Here's your plan.";
-  document.getElementById('heroSub').textContent = CLIENT.subhead + (CLIENT.businessName ? ` — ${CLIENT.businessName}` : '');
+  document.getElementById('heroSub').textContent = CLIENT.subhead + (CLIENT.businessName ? ` | ${CLIENT.businessName}` : '');
   document.getElementById('ctaLink').href = CLIENT.bookingUrl;
 
   const vis = visibleTasks();
@@ -1352,7 +1382,7 @@ function render(){
 }
 
 /* =========================================================================
-   HILL-CLIMB DASHBOARD — chapters now match the real When buckets 1:1.
+   HILL-CLIMB DASHBOARD: chapters now match the real When buckets 1:1.
    ========================================================================= */
 function getChapters(){
   return WHEN_OPTIONS.map(when => {
@@ -1497,6 +1527,37 @@ function renderTechStack(){
     `).join('');
   }
 }
+function escDeliv(v){
+  return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+async function renderDeliverables(){
+  const card = document.getElementById('delivCard');
+  const list = document.getElementById('delivList');
+  const note = document.getElementById('delivNote');
+  if(card) card.style.display = 'none';
+  let items = [];
+  try{
+    const r = await fetch('/api/deliverables');
+    if(!r.ok) return;
+    const data = await r.json();
+    items = data.deliverables || [];
+  }catch(e){ return; }
+  if(!items.length) return;
+  const cls = { 'In progress':'s-progress', 'In review':'s-review', 'Delivered':'s-done', 'Ongoing':'s-progress' };
+  list.innerHTML = items.map(d => `
+    <div class="deliv-card">
+      <div class="deliv-top">
+        <div class="deliv-name">${escDeliv(d.name)}</div>
+        ${d.status ? `<span class="deliv-status ${cls[d.status] || ''}">${escDeliv(d.status)}</span>` : ''}
+      </div>
+      ${d.summary ? `<div class="deliv-summary">${escDeliv(d.summary)}</div>` : ''}
+      ${(d.includes && d.includes.length) ? `<ul class="deliv-items">${d.includes.map(i => `<li>${escDeliv(i)}</li>`).join('')}</ul>` : ''}
+      ${d.timing ? `<div class="deliv-when"><strong>Timing:</strong> ${escDeliv(d.timing)}</div>` : ''}
+    </div>
+  `).join('');
+  if(note) note.textContent = 'This is a plain-language summary. Your signed agreement has the full details.';
+  if(card) card.style.display = 'block';
+}
 function renderTools(){
   const card = document.getElementById('toolsCard');
   const grid = document.getElementById('toolsGrid');
@@ -1597,7 +1658,7 @@ function renderIdeasList(){
   const ideas = TASKS.filter(t => t.when === IDEA_WHEN);
   list.innerHTML = ideas.length
     ? ideas.map(t => ideaCardHtml(t)).join('')
-    : '<div class="empty-section-note">No bigger ideas dropped yet — add one from the Add a Task box above and choose "Someday / bigger idea."</div>';
+    : '<div class="empty-section-note">No bigger ideas dropped yet. Add one from the Add a Task box above and choose "Someday / bigger idea."</div>';
 }
 
 function getParams(){
@@ -1606,7 +1667,7 @@ function getParams(){
 }
 
 /* =========================================================================
-   CHAT WIDGET — "Talk it through"
+   CHAT WIDGET: "Talk it through"
    ========================================================================= */
 let chatHistory = [];
 function renderChat(){
@@ -1742,7 +1803,7 @@ async function addThought(){
     thoughts = data.thoughts || thoughts;
     input.value = '';
     renderThoughts();
-  }catch(e){ alert('Could not save that — check your connection and try again.'); }
+  }catch(e){ alert('Could not save that. Check your connection and try again.'); }
   addBtn.disabled = false;
 }
 async function toggleThought(id){
@@ -1814,6 +1875,7 @@ loadThoughts();
    ========================================================================= */
 applySavedSummaryCollapseState();
 renderExecSummary();
+renderDeliverables();
 renderTechStack();
 renderTools();
 renderFinancialImpact();
