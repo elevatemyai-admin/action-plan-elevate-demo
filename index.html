@@ -1552,8 +1552,13 @@ function drawDeliverables(){
   if(!card || !list) return;
   if(!DELIVERABLES.length){ card.style.display = 'none'; return; }
   const cls = { 'In progress':'s-progress', 'In review':'s-review', 'Delivered':'s-done', 'Ongoing':'s-progress' };
+  // Read from TASKS (the live list that checkboxes update), including sub-steps,
+  // so progress moves the moment a task is checked off.
   const byId = {};
-  (ALL_TASKS || []).forEach(t => { byId[t.id] = t; });
+  (TASKS || []).forEach(t => {
+    byId[t._id] = { done: !!t.done };
+    (t.subtasks || []).forEach(s => { byId[s._id] = { done: !!s.done }; });
+  });
   list.innerHTML = DELIVERABLES.map(d => {
     const linked = (d.taskIds || []).map(id => byId[id]).filter(Boolean);
     const done = linked.filter(t => t.done).length;
