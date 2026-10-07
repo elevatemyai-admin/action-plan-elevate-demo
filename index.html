@@ -1244,16 +1244,24 @@ async function addSubtask(parentId){
   const maxOrder = siblings.reduce((max, t) => Math.max(max, t.order || 0), 0);
   input.disabled = true;
   try{
-    await fetch('/api/tasks', {
+    const res = await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ task: text, parentId, order: maxOrder + 10, done: false })
     });
+    if(!res.ok){
+      // Show Airtable's real reason instead of failing silently, and keep the typed text.
+      const detail = await res.json().catch(() => ({}));
+      alert('That step didn\'t save. ' + (detail.error || ('Error ' + res.status)));
+      input.disabled = false;
+      return;
+    }
+    input.value = '';
     await loadTasksFromAirtable();
     stepExpanded[parentId] = true;
     render();
   }catch(e){
-    alert('Could not add that step -- check your connection and try again.');
+    alert('Could not add that step. Check your connection and try again.');
   }
   input.disabled = false;
 }
