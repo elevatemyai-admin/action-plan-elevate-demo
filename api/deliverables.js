@@ -1,7 +1,7 @@
 // api/deliverables.js
 //
-// Reads a client's Deliverables table in Airtable, so "What We're Building
-// For You" on the action plan page always shows the current version. Edit
+// Reads a client's Deliverables table in Airtable, so "What We're Building"
+// on the action plan page always shows the current version. Edit
 // deliverables in Airtable (wording, status, timing, order) and the page
 // updates on the next refresh. No re-upload, no redeploy.
 //
@@ -15,11 +15,14 @@
 // If the table doesn't exist yet, the page simply hides the section.
 //
 // Airtable columns (exact names):
-//   Name | Summary | Includes | Status | Timing | Order
+//   Name | Summary | Includes | Status | Timing | Order | Tasks
 //   Includes: one item per line (Long text field)
 //   Status:   Not started / In progress / In review / Delivered / Ongoing
+//   Tasks:    created automatically by Airtable when the Tasks table gets a
+//             "Deliverable" link field. The page uses it to show
+//             "3 of 8 tasks done" on each deliverable.
 //
-//   GET /api/deliverables  -> { deliverables: [ { id, name, summary, includes[], status, timing, order } ] }
+//   GET /api/deliverables  -> { deliverables: [ { id, name, summary, includes[], status, timing, order, taskIds[] } ] }
 
 const TABLE_NAME = 'Deliverables';
 
@@ -39,7 +42,8 @@ function toDeliverable(rec) {
     includes: str(f['Includes']).split(/\r?\n/).map(s => s.replace(/^\s*[-*•]\s*/, '').trim()).filter(Boolean),
     status: str(f['Status']).trim(),
     timing: str(f['Timing']).trim(),
-    order: Number(f['Order']) || 0
+    order: Number(f['Order']) || 0,
+    taskIds: Array.isArray(f['Tasks']) ? f['Tasks'].filter(v => typeof v === 'string') : []
   };
 }
 
