@@ -338,6 +338,9 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 .deliv-status.s-done{background:#E3F1EC;color:var(--emerald);}
 .deliv-summary{font-size:12.5px;color:var(--text-muted);margin:0.35rem 0 0.5rem;line-height:1.5;}
 .deliv-items{margin:0;padding-left:1.1rem;font-size:12.5px;color:var(--text-dark);line-height:1.6;}
+.deliv-progress{display:flex;align-items:center;gap:0.6rem;margin-top:0.6rem;font-size:11.5px;color:var(--text-muted);}
+.deliv-bar{flex:1;height:6px;background:var(--cream);border-radius:999px;overflow:hidden;}
+.deliv-bar span{display:block;height:100%;background:var(--teal);border-radius:999px;}
 .deliv-when{font-size:11.5px;color:var(--text-muted);margin-top:0.5rem;padding-top:0.5rem;border-top:1px dashed var(--border);}
 .deliv-note{font-size:11.5px;color:var(--text-muted);margin-top:0.75rem;line-height:1.5;}
 .deliv-note a{color:var(--teal);}
@@ -460,7 +463,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
 
   <div class="mini-card expanded" id="delivCard">
     <div class="mini-card-top" onclick="toggleMiniCard('delivCard')">
-      <div class="mini-card-title">What We're Building For You</div>
+      <div class="mini-card-title">What We're Building</div>
       <div class="mini-card-chevron">▲</div>
     </div>
     <div class="mini-card-body">
@@ -751,7 +754,7 @@ const EXEC_SUMMARY = {
   primaryFocus: ""
 };
 
-// DELIVERABLES: nothing to edit here. "What We're Building For You" reads
+// DELIVERABLES: nothing to edit here. "What We're Building" reads
 // live from the Deliverables table in this client's Airtable base (see
 // api/deliverables.js). Edit it there; no re-upload needed. No table, or an
 // empty one, simply hides the section.
@@ -1344,6 +1347,7 @@ function toggleCompletedCollapse(){
 }
 
 function render(){
+  drawDeliverables();
   const params = getParams();
   const displayName = params.name || CLIENT.clientName;
   document.getElementById('heroTitle').textContent = displayName ? `Here's your plan, ${displayName}.` : "Here's your plan.";
@@ -1530,21 +1534,31 @@ function renderTechStack(){
 function escDeliv(v){
   return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+let DELIVERABLES = [];
 async function renderDeliverables(){
-  const card = document.getElementById('delivCard');
-  const list = document.getElementById('delivList');
-  const note = document.getElementById('delivNote');
-  if(card) card.style.display = 'none';
-  let items = [];
   try{
     const r = await fetch('/api/deliverables');
     if(!r.ok) return;
     const data = await r.json();
-    items = data.deliverables || [];
-  }catch(e){ return; }
-  if(!items.length) return;
+    DELIVERABLES = data.deliverables || [];
+  }catch(e){ DELIVERABLES = []; }
+  drawDeliverables();
+}
+// Redrawn on every render() so task progress stays current as tasks get checked off.
+function drawDeliverables(){
+  const card = document.getElementById('delivCard');
+  const list = document.getElementById('delivList');
+  const note = document.getElementById('delivNote');
+  if(!card || !list) return;
+  if(!DELIVERABLES.length){ card.style.display = 'none'; return; }
   const cls = { 'In progress':'s-progress', 'In review':'s-review', 'Delivered':'s-done', 'Ongoing':'s-progress' };
-  list.innerHTML = items.map(d => `
+  const byId = {};
+  (ALL_TASKS || []).forEach(t => { byId[t.id] = t; });
+  list.innerHTML = DELIVERABLES.map(d => {
+    const linked = (d.taskIds || []).map(id => byId[id]).filter(Boolean);
+    const done = linked.filter(t => t.done).length;
+    const pct = linked.length ? Math.round(done / linked.length * 100) : 0;
+    return `
     <div class="deliv-card">
       <div class="deliv-top">
         <div class="deliv-name">${escDeliv(d.name)}</div>
@@ -1552,11 +1566,12 @@ async function renderDeliverables(){
       </div>
       ${d.summary ? `<div class="deliv-summary">${escDeliv(d.summary)}</div>` : ''}
       ${(d.includes && d.includes.length) ? `<ul class="deliv-items">${d.includes.map(i => `<li>${escDeliv(i)}</li>`).join('')}</ul>` : ''}
+      ${linked.length ? `<div class="deliv-progress"><div class="deliv-bar"><span style="width:${pct}%"></span></div><span>${done} of ${linked.length} task${linked.length === 1 ? '' : 's'} done</span></div>` : ''}
       ${d.timing ? `<div class="deliv-when"><strong>Timing:</strong> ${escDeliv(d.timing)}</div>` : ''}
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
   if(note) note.textContent = 'This is a plain-language summary. Your signed agreement has the full details.';
-  if(card) card.style.display = 'block';
+  card.style.display = 'block';
 }
 function renderTools(){
   const card = document.getElementById('toolsCard');
