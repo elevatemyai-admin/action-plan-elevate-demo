@@ -411,7 +411,12 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
    further down and open from here when you want them. Talk it through
    gets a filled pill since it's an action, not reference. */
 .plan-menu{position:sticky;top:68px;z-index:150;background:var(--cream);margin:1rem -1.5rem 0;padding:0.6rem 1.5rem;border-bottom:1px solid var(--border);}
-.plan-menu-row{display:flex;gap:0.45rem;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.plan-menu-row{display:flex;flex-wrap:wrap;gap:0.45rem;}
+/* Phones: one swipeable row instead of stacking, with a fade on the right
+   edge so it's obvious there's more to swipe to. */
+@media(max-width:720px){
+  .plan-menu-row{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:3px 2rem 3px 3px;margin:-3px;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent);}
+}
 .plan-menu-row::-webkit-scrollbar{display:none;}
 .plan-pill{flex-shrink:0;border:1.5px solid var(--border);background:var(--white);color:var(--navy);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:600;font-family:var(--b);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:0.4rem;}
 .plan-pill:hover{border-color:var(--teal);}
@@ -2114,9 +2119,14 @@ applySavedDashboardCollapseState();
     else if(el.classList.contains('mini-card') && !el.classList.contains('expanded')) toggleMiniCard(el.id);
   }
 
+  const row = menu.querySelector('.plan-menu-row');
   pills.forEach(p => p.addEventListener('click', () => {
     const el = document.getElementById(p.dataset.target);
     if(!el) return;
+    // On phones the row swipes sideways; keep the tapped pill fully in view.
+    if(row && row.scrollWidth > row.clientWidth){
+      row.scrollTo({ left: p.offsetLeft - row.clientWidth / 2 + p.offsetWidth / 2, behavior: 'smooth' });
+    }
     openTarget(el);
     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     // Land just under the sticky menu. Re-check once the open animation
