@@ -405,6 +405,32 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
   .wrap{padding:2rem 1.25rem 4rem;}
   .step-detail{padding-left:1.4rem;}
 }
+
+/* PLAN MENU: one-click row under the nav. Tasks stay front and center;
+   the reference sections (summary, deliverables, climb, etc.) live
+   further down and open from here when you want them. Talk it through
+   gets a filled pill since it's an action, not reference. */
+.plan-menu{position:sticky;top:68px;z-index:150;background:var(--cream);margin:1rem -1.5rem 0;padding:0.6rem 1.5rem;border-bottom:1px solid var(--border);}
+.plan-menu-row{display:flex;gap:0.45rem;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.plan-menu-row::-webkit-scrollbar{display:none;}
+.plan-pill{flex-shrink:0;border:1.5px solid var(--border);background:var(--white);color:var(--navy);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:600;font-family:var(--b);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:0.4rem;}
+.plan-pill:hover{border-color:var(--teal);}
+.plan-pill:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+.plan-pill .pill-pct{color:var(--teal);font-weight:700;}
+.plan-pill.talk{background:var(--teal);border-color:var(--teal);color:#fff;}
+.plan-pill.talk:hover{background:var(--navy);border-color:var(--navy);}
+.plan-menu-divider{flex-shrink:0;width:1px;background:var(--border);margin:4px 0.2rem;}
+.action-zone{margin-top:2.5rem;padding-top:1.25rem;border-top:2px dashed var(--border);}
+.action-zone .section-label{margin-top:0;}
+.action-zone .top-capture-grid{margin-top:0;}
+.action-zone #talkCard{margin-top:1rem;}
+.plan-details{margin-top:2.5rem;padding-top:1.25rem;border-top:2px dashed var(--border);}
+.plan-details .section-label{margin-top:0;}
+#tasksTop,#addTaskCard,#dropThoughtCard,#summaryCard,#execCard,#delivCard,#stackCard,#toolsCard,#financialCard,#dashboardCard,#talkCard{scroll-margin-top:140px;}
+.plan-flash{animation:planFlash 1.4s ease-out;}
+@keyframes planFlash{0%{box-shadow:0 0 0 3px var(--teal);}100%{box-shadow:0 0 0 3px transparent;}}
+@media(prefers-reduced-motion:reduce){.plan-flash{animation:none;}html{scroll-behavior:auto;}}
+@media(max-width:640px){ .plan-menu{margin:0.75rem -1.25rem 0;padding:0.55rem 1.25rem;} }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
@@ -422,6 +448,160 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
   <h1 class="hero-title" id="heroTitle">Loading...</h1>
   <p class="hero-sub" id="heroSub"></p>
 
+  <div class="plan-menu" id="planMenu">
+    <div class="plan-menu-row">
+      <button class="plan-pill" data-target="tasksTop">Tasks</button>
+      <button class="plan-pill talk" data-target="addTaskCard">Add a task</button>
+      <button class="plan-pill talk" data-target="dropThoughtCard">Drop a thought</button>
+      <button class="plan-pill talk" data-target="talkCard">Talk it through</button>
+      <span class="plan-menu-divider" aria-hidden="true"></span>
+      <button class="plan-pill" data-target="summaryCard">Quick Summary</button>
+      <button class="plan-pill" data-target="execCard">Executive Summary</button>
+      <button class="plan-pill" data-target="delivCard">What We're Building</button>
+      <button class="plan-pill" data-target="stackCard">Tech Stack</button>
+      <button class="plan-pill" data-target="toolsCard">Solutions</button>
+      <button class="plan-pill" data-target="financialCard">Financial Impact</button>
+      <button class="plan-pill" data-target="dashboardCard">Your climb <span class="pill-pct" id="pillPct"></span></button>
+    </div>
+  </div>
+
+  <div id="tasksTop"></div>
+
+  <div class="filter-toggle" id="tagFilterToggle" onclick="toggleTagFilterOpen()">
+    <span class="section-label tight" id="tagFilterLabel" style="margin:0;">Filter by tag</span>
+    <span class="tag-picker-chevron" id="tagFilterChevron">▾</span>
+  </div>
+  <div class="tag-filter-bar" id="tagFilterBar" style="display:none;"></div>
+
+  <div class="filter-toggle" id="assigneeFilterToggle" onclick="toggleAssigneeFilterOpen()">
+    <span class="section-label tight" id="assigneeFilterLabel" style="margin:0;">Filter by assignee</span>
+    <span class="tag-picker-chevron" id="assigneeFilterChevron">▾</span>
+  </div>
+  <div class="tag-filter-bar" id="assigneeFilterBar" style="display:none;"></div>
+
+  <div class="when-section" data-when="Today">
+    <div class="when-section-header" onclick="toggleWhenSection('Today')">
+      <span>Today</span>
+      <span class="when-section-count" id="count-Today"></span>
+      <span class="when-section-chevron">▲</span>
+    </div>
+    <div id="section-today" class="when-section-body"></div>
+  </div>
+
+  <div class="when-section" data-when="This Week">
+    <div class="when-section-header" onclick="toggleWhenSection('This Week')">
+      <span>This week</span>
+      <span class="when-section-count" id="count-This Week"></span>
+      <span class="when-section-chevron">▲</span>
+    </div>
+    <div id="section-this-week" class="when-section-body"></div>
+  </div>
+
+  <div class="when-section" data-when="Next Week">
+    <div class="when-section-header" onclick="toggleWhenSection('Next Week')">
+      <span>Next week</span>
+      <span class="when-section-count" id="count-Next Week"></span>
+      <span class="when-section-chevron">▲</span>
+    </div>
+    <div id="section-next-week" class="when-section-body"></div>
+  </div>
+
+  <div class="when-section" data-when="Future">
+    <div class="when-section-header" onclick="toggleWhenSection('Future')">
+      <span>Future</span>
+      <span class="when-section-count" id="count-Future"></span>
+      <span class="when-section-chevron">▲</span>
+    </div>
+    <div id="section-future" class="when-section-body"></div>
+  </div>
+
+  <div class="completed-section" id="completedSection" style="display:none;">
+    <div class="completed-header" onclick="toggleCompletedCollapse()">
+      <span>✓ Completed</span>
+      <span id="completedCount"></span>
+    </div>
+    <div id="completedList" style="display:none;"></div>
+  </div>
+
+  <div class="action-zone" id="actionZone">
+    <div class="section-label">Add, drop, or talk it out</div>
+  <div class="top-capture-grid">
+    <div class="chat-card" id="addTaskCard">
+      <div class="chat-title">Add a task</div>
+      <div class="chat-sub">Adds straight to your live plan. Pick when it's due; tags are optional and just for filtering later.</div>
+      <div class="add-task-grid">
+        <input id="newTaskText" type="text" placeholder="What needs to happen?" />
+        <select id="newTaskWhen">
+          <option value="Today">Today</option>
+          <option value="This Week" selected>This Week</option>
+          <option value="Next Week">Next Week</option>
+          <option value="Future">Future</option>
+          <option value="Idea">Someday / bigger idea</option>
+        </select>
+        <select id="newTaskAiOrHuman">
+          <option value="" selected>Who does this? (optional)</option>
+          <option value="human">Human-led</option>
+          <option value="ai">AI-assisted</option>
+        </select>
+        <div class="tag-picker-toggle" id="newTaskTagToggle" onclick="toggleTagPicker()">
+          <span id="newTaskTagToggleLabel">+ Choose tags (optional)</span>
+          <span class="tag-picker-chevron" id="newTaskTagChevron">▾</span>
+        </div>
+        <div class="tag-picker" id="newTaskTagPicker" style="display:none;"></div>
+        <div class="add-task-row2">
+          <button id="newTaskAdd" onclick="addNewTask()" style="width:100%;">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-card" id="dropThoughtCard">
+      <div class="chat-title">Drop a thought</div>
+      <div class="chat-sub">
+        For anything that doesn't have a home yet. Type it or talk it out. Visible to the whole
+        team the moment you add it.
+      </div>
+      <div class="chat-input-row">
+        <select id="thoughtAuthor"></select>
+        <input id="thoughtInput" type="text" placeholder="Type it, or hit the mic..." />
+        <button id="thoughtMic" type="button" title="Tap to talk instead of typing" style="display:none;">🎤</button>
+        <button id="thoughtAdd">Add</button>
+      </div>
+      <div id="thoughtQueueBanner"></div>
+      <div id="thoughtList" class="thought-list"></div>
+      <div class="privacy-note">
+        Dropped thoughts are visible live to the whole team, unlike "Talk it through"
+        below, this one isn't private to your browser.
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-card" id="talkCard">
+    <div class="chat-title">Talk it through</div>
+    <div class="chat-sub">
+      Tell us what's going on: an update, a story, something coming up.
+      We'll help turn it into something usable.
+    </div>
+    <div id="chatLog" class="chat-log"></div>
+    <div class="chat-input-row">
+      <input id="chatInput" type="text" placeholder="Type here..." />
+      <button id="chatMic" type="button" title="Tap to talk instead of typing" style="display:none;">🎤</button>
+      <button id="chatSend">Send</button>
+    </div>
+    <div class="chat-actions">
+      <button id="chatDownload">Download conversation</button>
+      <button id="chatEmail">Email this to your advisor</button>
+    </div>
+    <div class="privacy-note">
+      Anything typed or said here goes to Claude (an AI made by Anthropic) to help turn it into
+      usable content, nothing more. It's not used to train AI models, sold, or shared outside
+      this project. What's typed is saved in this browser only; it doesn't sync to our team
+      automatically. Use "Email this to your advisor" any time you want us to actually see it.
+    </div>
+  </div>
+  </div>
+
+  <div class="plan-details" id="planDetails">
+    <div class="section-label">Plan details</div>
   <div class="summary-card" id="summaryCard">
     <div class="summary-top" onclick="toggleSummaryCollapse()">
       <div class="summary-title">Quick Summary</div>
@@ -461,7 +641,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
     </div>
   </div>
 
-  <div class="mini-card expanded" id="delivCard">
+  <div class="mini-card" id="delivCard">
     <div class="mini-card-top" onclick="toggleMiniCard('delivCard')">
       <div class="mini-card-title">What We're Building</div>
       <div class="mini-card-chevron">▲</div>
@@ -526,137 +706,6 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem
       <div class="chapter-legend" id="chapterLegend"></div>
     </div>
   </div>
-
-  <!-- TOP CAPTURE ROW: Add a Task + Drop a Thought, side by side, above
-       the fold. Fix for the old layout, where these were far apart. -->
-  <div class="top-capture-grid">
-    <div class="chat-card" id="addTaskCard">
-      <div class="chat-title">Add a task</div>
-      <div class="chat-sub">Adds straight to the live plan below. Pick when it's due; tags are optional and just for filtering later.</div>
-      <div class="add-task-grid">
-        <input id="newTaskText" type="text" placeholder="What needs to happen?" />
-        <select id="newTaskWhen">
-          <option value="Today">Today</option>
-          <option value="This Week" selected>This Week</option>
-          <option value="Next Week">Next Week</option>
-          <option value="Future">Future</option>
-          <option value="Idea">Someday / bigger idea</option>
-        </select>
-        <select id="newTaskAiOrHuman">
-          <option value="" selected>Who does this? (optional)</option>
-          <option value="human">Human-led</option>
-          <option value="ai">AI-assisted</option>
-        </select>
-        <div class="tag-picker-toggle" id="newTaskTagToggle" onclick="toggleTagPicker()">
-          <span id="newTaskTagToggleLabel">+ Choose tags (optional)</span>
-          <span class="tag-picker-chevron" id="newTaskTagChevron">▾</span>
-        </div>
-        <div class="tag-picker" id="newTaskTagPicker" style="display:none;"></div>
-        <div class="add-task-row2">
-          <button id="newTaskAdd" onclick="addNewTask()" style="width:100%;">Add</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="chat-card" id="dropThoughtCard">
-      <div class="chat-title">Drop a thought</div>
-      <div class="chat-sub">
-        For anything that doesn't have a home yet. Type it or talk it out. Visible to the whole
-        team the moment you add it.
-      </div>
-      <div class="chat-input-row">
-        <select id="thoughtAuthor"></select>
-        <input id="thoughtInput" type="text" placeholder="Type it, or hit the mic..." />
-        <button id="thoughtMic" type="button" title="Tap to talk instead of typing" style="display:none;">🎤</button>
-        <button id="thoughtAdd">Add</button>
-      </div>
-      <div id="thoughtQueueBanner"></div>
-      <div id="thoughtList" class="thought-list"></div>
-      <div class="privacy-note">
-        Dropped thoughts are visible live to the whole team, unlike "Talk it through"
-        below, this one isn't private to your browser.
-      </div>
-    </div>
-  </div>
-
-  <div class="filter-toggle" id="tagFilterToggle" onclick="toggleTagFilterOpen()">
-    <span class="section-label tight" id="tagFilterLabel" style="margin:0;">Filter by tag</span>
-    <span class="tag-picker-chevron" id="tagFilterChevron">▾</span>
-  </div>
-  <div class="tag-filter-bar" id="tagFilterBar" style="display:none;"></div>
-
-  <div class="filter-toggle" id="assigneeFilterToggle" onclick="toggleAssigneeFilterOpen()">
-    <span class="section-label tight" id="assigneeFilterLabel" style="margin:0;">Filter by assignee</span>
-    <span class="tag-picker-chevron" id="assigneeFilterChevron">▾</span>
-  </div>
-  <div class="tag-filter-bar" id="assigneeFilterBar" style="display:none;"></div>
-
-  <div class="when-section" data-when="Today">
-    <div class="when-section-header" onclick="toggleWhenSection('Today')">
-      <span>Today</span>
-      <span class="when-section-count" id="count-Today"></span>
-      <span class="when-section-chevron">▲</span>
-    </div>
-    <div id="section-today" class="when-section-body"></div>
-  </div>
-
-  <div class="when-section" data-when="This Week">
-    <div class="when-section-header" onclick="toggleWhenSection('This Week')">
-      <span>This week</span>
-      <span class="when-section-count" id="count-This Week"></span>
-      <span class="when-section-chevron">▲</span>
-    </div>
-    <div id="section-this-week" class="when-section-body"></div>
-  </div>
-
-  <div class="when-section" data-when="Next Week">
-    <div class="when-section-header" onclick="toggleWhenSection('Next Week')">
-      <span>Next week</span>
-      <span class="when-section-count" id="count-Next Week"></span>
-      <span class="when-section-chevron">▲</span>
-    </div>
-    <div id="section-next-week" class="when-section-body"></div>
-  </div>
-
-  <div class="when-section" data-when="Future">
-    <div class="when-section-header" onclick="toggleWhenSection('Future')">
-      <span>Future</span>
-      <span class="when-section-count" id="count-Future"></span>
-      <span class="when-section-chevron">▲</span>
-    </div>
-    <div id="section-future" class="when-section-body"></div>
-  </div>
-
-  <div class="completed-section" id="completedSection" style="display:none;">
-    <div class="completed-header" onclick="toggleCompletedCollapse()">
-      <span>✓ Completed</span>
-      <span id="completedCount"></span>
-    </div>
-    <div id="completedList" style="display:none;"></div>
-  </div>
-
-  <div class="chat-card">
-    <div class="chat-title">Talk it through</div>
-    <div class="chat-sub">
-      Tell us what's going on: an update, a story, something coming up.
-      We'll help turn it into something usable.
-    </div>
-    <div id="chatLog" class="chat-log"></div>
-    <div class="chat-input-row">
-      <input id="chatInput" type="text" placeholder="Type here..." />
-      <button id="chatMic" type="button" title="Tap to talk instead of typing" style="display:none;">🎤</button>
-      <button id="chatSend">Send</button>
-    </div>
-    <div class="chat-actions">
-      <button id="chatDownload">Download conversation</button>
-      <button id="chatEmail">Email this to your advisor</button>
-    </div>
-    <div class="privacy-note">
-      Anything typed or said here goes to Claude (an AI made by Anthropic) to help turn it into
-      usable content, nothing more. It's not used to train AI models, sold, or shared outside
-      this project. What's typed is saved in this browser only; it doesn't sync to our team
-      automatically. Use "Email this to your advisor" any time you want us to actually see it.
-    </div>
   </div>
 
   <div class="future-heading">
@@ -778,12 +827,14 @@ const FINANCIAL_IMPACT = {
 };
 
 // WAYS_WE_HELP: a menu of deeper engagement options.
+// priceRange: only fill in with numbers Matt has signed off on. Leave it
+// blank and the price line just doesn't show.
 const WAYS_WE_HELP = [
-  { icon: '🧩', color: 'var(--teal)', title: "Redesigning a process end-to-end", description: "When a whole workflow needs rethinking, not just one step.", priceRange: "$3,000-$5,000" },
-  { icon: '⚙️', color: 'var(--amber)', title: "Building automations", description: "Connecting the tools you already use so less falls on you manually.", priceRange: "$1,000-$3,000" },
-  { icon: '📚', color: 'var(--navy-light)', title: "Training a system on your own content", description: "A custom assistant that actually knows your business.", priceRange: "~$3,000" },
-  { icon: '🤝', color: 'var(--emerald)', title: "Ongoing hands-on support", description: "Regular working sessions until this becomes second nature.", priceRange: "$3,000-$5,000" },
-  { icon: '🚀', color: 'var(--teal)', title: "Full implementation", description: "We build and run it end-to-end, tailored to how you work.", priceRange: "$5,000-$10,000" }
+  { icon: '🧩', color: 'var(--teal)', title: "Redesigning a process end-to-end", description: "When a whole workflow needs rethinking, not just one step.", priceRange: "" },
+  { icon: '⚙️', color: 'var(--amber)', title: "Building automations", description: "Connecting the tools you already use so less falls on you manually.", priceRange: "" },
+  { icon: '📚', color: 'var(--navy-light)', title: "Training a system on your own content", description: "A custom assistant that actually knows your business.", priceRange: "" },
+  { icon: '🤝', color: 'var(--emerald)', title: "Ongoing hands-on support", description: "Regular working sessions until this becomes second nature.", priceRange: "" },
+  { icon: '🚀', color: 'var(--teal)', title: "Full implementation", description: "We build and run it end-to-end, tailored to how you work.", priceRange: "" }
 ];
 
 // Bigger Ideas is no longer a hand-written list -- it's just the live
@@ -2048,6 +2099,59 @@ applySavedDashboardCollapseState();
       document.getElementById('resultsCard').style.display = '';
     })
     .catch(err => console.warn('Results so far did not load:', err));
+})();
+// PLAN MENU: jump to a section, open it if it's folded, flash it so the
+// eye lands in the right spot. Pills hide themselves when their card is
+// hidden (empty data), and the climb pill mirrors the live summit %.
+(function(){
+  const menu = document.getElementById('planMenu');
+  if(!menu) return;
+  const pills = Array.from(menu.querySelectorAll('.plan-pill'));
+
+  function openTarget(el){
+    if(el.id === 'summaryCard' && el.classList.contains('collapsed')) toggleSummaryCollapse();
+    else if(el.id === 'dashboardCard' && el.classList.contains('collapsed')) toggleDashboardCollapse();
+    else if(el.classList.contains('mini-card') && !el.classList.contains('expanded')) toggleMiniCard(el.id);
+  }
+
+  pills.forEach(p => p.addEventListener('click', () => {
+    const el = document.getElementById(p.dataset.target);
+    if(!el) return;
+    openTarget(el);
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Land just under the sticky menu. Re-check once the open animation
+    // settles, since opening a card can shift the page while scrolling.
+    const land = () => {
+      const y = window.scrollY + el.getBoundingClientRect().top - menu.getBoundingClientRect().bottom - 14;
+      window.scrollTo({ top: Math.max(0, y), behavior: smooth ? 'smooth' : 'auto' });
+    };
+    land();
+    setTimeout(land, 420);
+    el.classList.remove('plan-flash'); void el.offsetWidth; el.classList.add('plan-flash');
+    const focusMap = { talkCard: 'chatInput', addTaskCard: 'newTaskText', dropThoughtCard: 'thoughtInput' };
+    if(focusMap[p.dataset.target]){
+      const input = document.getElementById(focusMap[p.dataset.target]);
+      if(input) setTimeout(() => input.focus({ preventScroll: true }), smooth ? 450 : 0);
+    }
+  }));
+
+  function syncPills(){
+    pills.forEach(p => {
+      const el = document.getElementById(p.dataset.target);
+      p.style.display = (el && el.style.display !== 'none') ? '' : 'none';
+    });
+    const pct = document.getElementById('summitPct');
+    const pillPct = document.getElementById('pillPct');
+    if(pct && pillPct) pillPct.textContent = pct.textContent;
+  }
+  syncPills();
+  const obs = new MutationObserver(syncPills);
+  pills.forEach(p => {
+    const el = document.getElementById(p.dataset.target);
+    if(el) obs.observe(el, { attributes: true, attributeFilter: ['style'] });
+  });
+  const pct = document.getElementById('summitPct');
+  if(pct) obs.observe(pct, { childList: true, characterData: true, subtree: true });
 })();
 </script>
 </body>
